@@ -4,10 +4,10 @@
 [centOS镜像网址]:https://www.centos.org/ "镜像网址"
 
 1. 点击[centOS镜像网址]下载对应的centOS镜像
-2. 点击红色→指向的区域 ![step-1](res\\vm_step_1.png)
-3. 此次下载centOS-7版本 ![step-2](res\\vm_step_2.png)
-4. 点击第一个链接 ![step-3](res\\vm_step_3.png)
-5. 点击下载![step-4](res\\vm_step_4.png)
+2. 点击红色→指向的区域 ![step-1](https://gitee.com/supermushroom-jay/linux/edit/master/createVM/res/vm_step_1.png)
+3. 此次下载centOS-7版本 ![step-2](https://gitee.com/supermushroom-jay/linux/edit/master/createVM/res/vm_step_2.png)
+4. 点击第一个链接 ![step-3](https://gitee.com/supermushroom-jay/linux/edit/master/createVM/res/vm_step_3.png)
+5. 点击下载![step-4](https://gitee.com/supermushroom-jay/linux/edit/master/createVM/res/vm_step_4.png)
 ---
 ## 二、新建VM虚拟机
 1. 打开VM，然后点击 “文件->新建虚拟机” 或者点击主页上的 “创建新的虚拟机” ![step-5](res\\vm_step_5.png)
