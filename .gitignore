@@ -1,3 +1,4 @@
 # 忽略centOS的文件夹中的全部内容
-/centOS-7-64/
-/centOS-7-64-min/
+centOS-7-64/
+centOS-7-64-min/
+centOS7
