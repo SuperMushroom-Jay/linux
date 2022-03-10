@@ -63,3 +63,319 @@ Query OK, 0 rows affected (0.00 sec)    //没用显示ERROR代表成功
 //退出，使用新密码即可登录
 ```
 ---
+## 语法
+### 基础语法
+- 创建数据库---**CREATE**
+``` SQL
+CREATE DATABASE database_name;
+
+--示例
+mysql> CREATE DATABASE test;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| test               |
+| testSql            |
++--------------------+
+```
+- 使用数据库---**USE**
+```SQL
+USE database_name;
+```
+- 创建表---**CREATE TABLE**
+```SQL
+CREATE TABLE table_name(
+    col_name type modifiers,
+    ...,
+    col_name type modifiers
+);
+
+--示例
+mysql> CREATE TABLE mytable( id INT NOT NULL, str VARCHAR(20), PRIMARY kEY (id));
+```
+- 删除表---**DROP TABLE**
+```SQL
+DROP TABLE table_name;
+
+--示例
+mysql> DROP TABLE mytable;
+```
+- 删除数据库---**DROP**
+``` SQL
+DROP DATABASE database_name;
+
+--示例
+mysql> DROP DATABASE test;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| testSql            |
++--------------------+
+```
+- 选择FORM中的列表并返回数据---**SELECT** and **FROM**
+```SQL
+-- 返回from_name中列表col_name_first , ... , col_name_last中的数据
+SELECT col_name_first , ... , col_name_last FROM from_name;
+
+-- 返回from_name中全部列表数据‘
+SELECT * FROM from_name;
+
+--示例1
+mysql> SELECT name,sex FROM stu;
++------+-------+
+| name | sex   |
++------+-------+
+| yjl  | male  |
+| mzh  | fmale |
+| mery | fmale |
+| mary | fmale |
+| carh | fmale |
+| Bob  | male  |
+| kery | fmale |
+| Kob  | male  |
++------+-------+
+
+--示例2
+mysql> SELECT * FROM stu;
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  0 |  19 | yjl  | male  |
+|  1 |  18 | mzh  | fmale |
+|  3 |  16 | mery | fmale |
+|  4 |  18 | mary | fmale |
+|  5 |  18 | carh | fmale |
+|  6 |  21 | Bob  | male  |
+|  7 |  17 | kery | fmale |
+|  8 |  21 | Kob  | male  |
++----+-----+------+-------+
+```
+- 筛选---**WHERE**
+```SQL
+--组合用法
+SELECT col_names
+FROM from_name
+WHERE conditions;
+
+-- 示例1
+mysql> SELECT * FROM stu WHERE sex = 'male';
++----+-----+------+------+
+| id | age | name | sex  |
++----+-----+------+------+
+|  0 |  19 | yjl  | male |
+|  6 |  21 | Bob  | male |
+|  8 |  21 | Kob  | male |
++----+-----+------+------+
+
+-- 可以使用 AND OR NOT  =  !=(<>)  >  >=  < <=  等修饰
+-- 示例2
+mysql> SELECT * FROM stu WHERE sex = 'male' and id = 6;
++----+-----+------+------+
+| id | age | name | sex  |
++----+-----+------+------+
+|  6 |  21 | Bob  | male |
++----+-----+------+------+
+
+-- 还有很多种修饰方法，之后讨论
+```
+- 限制搜索到的数据的显示条数以及规定数据的偏移量---**LIMIT** and **OFFSET**
+```SQL
+-- LIMIT 语句
+SELECT col_names
+FROM from_name
+WHERE conditions -- 可有可无
+LIMIT limit_number;
+
+-- 示例1 显示stu table的前两行数据
+mysql> SELECT * FROM stu LIMIT 2;
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  0 |  19 | yjl  | male  |
+|  1 |  18 | mzh  | fmale |
++----+-----+------+-------+
+
+-- OFSSET 语句
+-- 语法1
+SELECT col_names
+FROM from_name
+WHERE conditions -- 可有可无
+LIMIT limit_number
+OFFSET offset_number;
+-- 语法2
+SELECT col_names
+FROM from_name
+WHERE conditions -- 可有可无
+LIMIT offset_number, limit_number;
+
+-- 示例2 显示搜索到的数据偏移2个数据之后的两个数据
+mysql> SELECT * FROM stu LIMIT 2 OFFSET 2;
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  3 |  16 | mery | fmale |
+|  4 |  18 | mary | fmale |
++----+-----+------+-------+
+```
+- 排序---**ORDER BY**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE conditions -- 可有可无
+ORDER BY col_names  -- 默认升序，降序在特定列名后加 DESC
+LIMIT offset_number, limit_number;  -- 可有可无
+
+-- 示例 将stu表种的数据按照age降序排序，然后返回偏移2个数据后的3个数据
+mysql> SELECT * FROM stu ORDER BY age DESC LIMIT 2,3;
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  0 |  19 | yjl  | male  |
+|  1 |  18 | mzh  | fmale |
+|  4 |  18 | mary | fmale |
++----+-----+------+-------+
+```
+- 运算符---**IN**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE data IN (datas);
+
+-- 示例
+mysql> SELECT * FROM stu WHERE id IN (1,3,5);
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  1 |  18 | mzh  | fmale |
+|  3 |  16 | mery | fmale |
+|  5 |  18 | carh | fmale |
++----+-----+------+-------+
+```
+- 运算符---**BETWEEN AND**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE BETWEEN condition1 AND condition2;
+
+-- 示例 显示age:17~19的数据
+mysql> SELECT * FROM stu WHERE age BETWEEN 17 AND 19;
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  0 |  19 | yjl  | male  |
+|  1 |  18 | mzh  | fmale |
+|  4 |  18 | mary | fmale |
+|  5 |  18 | carh | fmale |
+|  7 |  17 | kery | fmale |
++----+-----+------+-------+
+```
+
+### 模糊查询与正则表达式
+
+- 模糊搜索---**LIKE**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE col_name LIKE like_str;
+
+-- 1. _ 表示单个字符
+-- 2. % 表示一个字符串，字符串的长度可以为0
+
+--示例1
+mysql> SELECT * FROM stu WHERE name LIKE 'm__y';
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  3 |  16 | mery | fmale |
+|  4 |  18 | mary | fmale |
++----+-----+------+-------+
+
+--示例2
+mysql> SELECT * FROM stu WHERE name LIKE '%r_';
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  3 |  16 | mery | fmale |
+|  4 |  18 | mary | fmale |
+|  5 |  18 | carh | fmale |
+|  7 |  17 | kery | fmale |
++----+-----+------+-------+
+```
+- 正则表达式---**REGEXP**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE col_name REGEXP regexp_str;
+
+-- 常用正则表达式
+-- 1. ^ : 匹配输入字行首
+-- 2. $ : 匹配输入行尾
+-- 3. * : 匹配前面的子表达式任意次
+-- 4. + : 匹配前面的子表达式一次或多次(大于等于1次）
+-- 5. ? : 匹配前面的子表达式零次或一次
+-- 6. x{n} x{n,} x{n,m} : 匹配确定的n(至少n)(至少n次至多m)次前面的子表达式x
+-- 7. x|y : 匹配x或y
+-- 8. [xyz] [^xyz] : 字符集合,匹配所包含(不包含)的任意一个字符
+-- 9. [a-z] [^a-z] : 字符范围,匹配指定范围内(外)的任意字符
+-- 10. ( ) : ()内的是一个子表达式
+-- 11. | : 将两个匹配条件进行逻辑“或”（or）运算
+
+-- 示例1
+mysql> SELECT * FROM stu WHERE name REGEXP '^y';
++----+-----+------+------+
+| id | age | name | sex  |
++----+-----+------+------+
+|  0 |  19 | yjl  | male |
++----+-----+------+------+
+
+-- 示例2
+mysql> SELECT * FROM stu WHERE name REGEXP 'y$';
++----+-----+------+-------+
+| id | age | name | sex   |
++----+-----+------+-------+
+|  3 |  16 | mery | fmale |
+|  4 |  18 | mary | fmale |
+|  7 |  17 | kery | fmale |
++----+-----+------+-------+
+
+-- 熟悉常用正则表达式即可
+```
+### 插入、更新和删除
+- 插入数据---**INSERT INTO VALUES**
+```SQL
+-- 语法
+INSERT INTO from_name VALUES (datas1),...,(datasn);
+
+-- 示例 插入一个数据
+mysql> INSERT INTO stu VALUES (2,12,'keria','male');
+```
+- 更新数据---**UPDATE SET WHERE**
+```SQL
+-- 语法
+UPDATE from_name SET col_name WHERE conditions;
+
+-- 示例 把name为keria的age更新为20
+mysql> UPDATE stu SET age = 20 WHERE name = 'keria';
+```
+- 删除数据---**DELETE WHERE**
+
+
