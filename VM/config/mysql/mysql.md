@@ -63,16 +63,17 @@ Query OK, 0 rows affected (0.00 sec)    //没用显示ERROR代表成功
 //退出，使用新密码即可登录
 ```
 ---
-## 语法
-### 基础语法
-- 创建数据库---**CREATE**
-``` SQL
-CREATE DATABASE database_name;
 
---示例
-mysql> CREATE DATABASE test;
-Query OK, 1 row affected (0.00 sec)
+# 语法
 
+## 数据定义语言---DDL
+
+- 查看所有数据库名称
+```SQL
+-- 语法
+SHOW DATABASE;
+
+-- 示例
 mysql> SHOW DATABASES;
 +--------------------+
 | Database           |
@@ -81,60 +82,192 @@ mysql> SHOW DATABASES;
 | mysql              |
 | performance_schema |
 | sys                |
-| test               |
 | testSql            |
 +--------------------+
 ```
-- 使用数据库---**USE**
+
+- 创建数据库
 ```SQL
-USE database_name;
+-- 语法
+CREATE DATABASE database_name;
+
+-- 示例
+mysql> CREATE DATABASE my_data_base;
 ```
-- 创建表---**CREATE TABLE**
+
+- 切换数据库
 ```SQL
+-- 语法
+USE databse_name;
+
+-- 示例
+mysql> USE testSql;
+Database changed    -- 代表成功
+```
+
+- 删除数据库
+```SQL
+-- 语法
+DROP DATABASE database_name;
+
+--示例
+mysql> CREATE DATABASE my_data_base;
+```
+
+- 创建表
+```SQL
+-- 语法
 CREATE TABLE table_name(
     col_name type modifiers,
     ...,
     col_name type modifiers
 );
 
---示例
+-- 示例
 mysql> CREATE TABLE mytable( id INT NOT NULL, str VARCHAR(20), PRIMARY kEY (id));
-```
-- 删除表---**DROP TABLE**
+```  
+
+- 删除表
 ```SQL
+-- 语法
 DROP TABLE table_name;
 
---示例
+-- 示例
 mysql> DROP TABLE mytable;
 ```
-- 删除数据库---**DROP**
-``` SQL
-DROP DATABASE database_name;
+
+- 显示所有表
+```SQL
+-- 语法
+SHOW TABLES;
+
+-- 示例
+mysql> SHOW TABLES;
++-------------------+
+| Tables_in_testSql |
++-------------------+
+| stu               |
++-------------------+
+```
+
+- 查看表结构
+```SQL
+-- 语法
+DESC table_name;
 
 --示例
-mysql> DROP DATABASE test;
-Query OK, 0 rows affected (0.00 sec)
-
-mysql> SHOW DATABASES;
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema |
-| mysql              |
-| performance_schema |
-| sys                |
-| testSql            |
-+--------------------+
+mysql> DESC stu;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| id    | int(11)     | NO   | PRI | NULL    |       |
+| age   | int(11)     | NO   |     | NULL    |       |
+| name  | varchar(20) | YES  |     | NULL    |       |
+| sex   | char(5)     | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
 ```
-- 选择FORM中的列表并返回数据---**SELECT** and **FROM**
+
+- 往表中添加列
 ```SQL
--- 返回from_name中列表col_name_first , ... , col_name_last中的数据
-SELECT col_name_first , ... , col_name_last FROM from_name;
+-- 语法
+ALTER TABLE table_name ADD col_name type modifiers;
 
--- 返回from_name中全部列表数据‘
-SELECT * FROM from_name;
+--示例
+mysql> ALTER TABLE stu ADD test_col INT NOT NULL;
+```
 
---示例1
+- 修改表中的列的类型
+```SQL
+-- 语法
+ALTER TABLE table_name MODIFY col_name type modifiers;
+
+--示例
+mysql> ALTER TABLE stu MODIFY test_col CHAR(5) NOT NULL;
+```
+
+- 修改表中列的名称和列的类型
+```SQL
+-- 语法
+ALTER TABLE table_name CHANGE col_name new_col_name type modifiers;
+
+--示例
+mysql> ALTER TABLE stu CHANGE test_col1 test_col2 INT NOT NULL;
+```
+
+- 删除表中的列
+```SQL
+-- 语法
+ALTER TABLE table_name DROP col_name;
+
+--示例
+mysql> ALTER TABLE stu DROP test_col2;
+```
+
+- 修改表的名称
+```SQL
+-- 语法
+ALTER TABLE table_name RENAME TO new_table_name;
+
+--示例
+mysql> ALTER TABLE stu RENAME TO student;
+```
+
+
+## 数据操作语言---DML
+
+- 插入
+```SQL
+-- 语法1    插入完成数据
+INSERT INTO from_name VALUES (datas1),...,(datasn);
+
+-- 语法2    给定列，插入对应列的数据
+INSERT INTO from_name(col_name,...,col_name) VALUES (datas),...,(datas);
+
+-- 示例1 插入一个数据
+mysql> INSERT INTO stu VALUES (2,12,'keria','male');
+
+-- 示例2 插入一个数据
+mysql> INSERT INTO stu(id,name) VALUES (2,'keria');
+```
+
+- 更新
+```SQL
+-- 语法     更新符合条件的列
+UPDATE from_name SET col_name = up_date WHERE conditions;
+
+-- 示例
+mysql> UPDATE stu SET age = 20 WHERE name = 'keria';
+```
+
+- 删除
+```SQL
+-- 语法1    删除表，这种删除可以回滚
+DELETE FROM from_name;
+
+-- 语法2    删除符合条件的行
+DELETE FROM from_name WHERE conditions;
+
+-- 示例1
+mysql> DELETE FROM stu;
+
+-- 示例2
+mysql> DELETE FROM stu WHERE id = 1;
+```
+
+
+## 数据查询语言---DQL
+
+- 查询数据
+```SQL
+-- 语法1    返回查询列的数据
+SELECT col_name_first , ... , col_name_last 
+FROM from_name;
+
+-- 语法2    返回所有列的数据
+SELECT * 
+FROM from_name;
+
+-- 示例1
 mysql> SELECT name,sex FROM stu;
 +------+-------+
 | name | sex   |
@@ -149,7 +282,7 @@ mysql> SELECT name,sex FROM stu;
 | Kob  | male  |
 +------+-------+
 
---示例2
+-- 示例2
 mysql> SELECT * FROM stu;
 +----+-----+------+-------+
 | id | age | name | sex   |
@@ -164,9 +297,10 @@ mysql> SELECT * FROM stu;
 |  8 |  21 | Kob  | male  |
 +----+-----+------+-------+
 ```
-- 筛选---**WHERE**
+
+- 条件筛选
 ```SQL
---组合用法
+-- 语法 返回符合条件的对应列的数据
 SELECT col_names
 FROM from_name
 WHERE conditions;
@@ -181,20 +315,19 @@ mysql> SELECT * FROM stu WHERE sex = 'male';
 |  8 |  21 | Kob  | male |
 +----+-----+------+------+
 
--- 可以使用 AND OR NOT  =  !=(<>)  >  >=  < <=  等修饰
 -- 示例2
-mysql> SELECT * FROM stu WHERE sex = 'male' and id = 6;
+mysql> SELECT * FROM stu WHERE sex = 'male' AND id = 6;
 +----+-----+------+------+
 | id | age | name | sex  |
 +----+-----+------+------+
 |  6 |  21 | Bob  | male |
 +----+-----+------+------+
-
--- 还有很多种修饰方法，之后讨论
 ```
-- 限制搜索到的数据的显示条数以及规定数据的偏移量---**LIMIT** and **OFFSET**
+
+- 限制数据的显示条数和偏移量
 ```SQL
 -- LIMIT 语句
+-- 语法
 SELECT col_names
 FROM from_name
 WHERE conditions -- 可有可无
@@ -231,7 +364,8 @@ mysql> SELECT * FROM stu LIMIT 2 OFFSET 2;
 |  4 |  18 | mary | fmale |
 +----+-----+------+-------+
 ```
-- 排序---**ORDER BY**
+
+- 排序
 ```SQL
 -- 语法
 SELECT col_names
@@ -250,12 +384,15 @@ mysql> SELECT * FROM stu ORDER BY age DESC LIMIT 2,3;
 |  4 |  18 | mary | fmale |
 +----+-----+------+-------+
 ```
-- 运算符---**IN**
+
+### 条件查询
+
+- **IN(set)**
 ```SQL
 -- 语法
 SELECT col_names
 FROM from_name
-WHERE data IN (datas);
+WHERE data IN (set);
 
 -- 示例
 mysql> SELECT * FROM stu WHERE id IN (1,3,5);
@@ -267,12 +404,13 @@ mysql> SELECT * FROM stu WHERE id IN (1,3,5);
 |  5 |  18 | carh | fmale |
 +----+-----+------+-------+
 ```
-- 运算符---**BETWEEN AND**
+
+- **BETWEEN ... AND ...**
 ```SQL
 -- 语法
 SELECT col_names
 FROM from_name
-WHERE BETWEEN condition1 AND condition2;
+WHERE BETWEEN ... AND ... ;
 
 -- 示例 显示age:17~19的数据
 mysql> SELECT * FROM stu WHERE age BETWEEN 17 AND 19;
@@ -287,9 +425,43 @@ mysql> SELECT * FROM stu WHERE age BETWEEN 17 AND 19;
 +----+-----+------+-------+
 ```
 
-### 模糊查询与正则表达式
+- **AND**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE  ... AND ... ;
 
-- 模糊搜索---**LIKE**
+-- 示例 返回id>5并且id<10的数据
+mysql> SELECT * FROM stu WHERE id > 5 AND id < 10;
+```
+
+- **OR**
+```SQL
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE  ... OR ... ;
+
+-- 示例 返回id<5或者id>10的数据
+mysql> SELECT * FROM stu WHERE id < 5 OR id > 10;
+```
+
+- **NOT**
+```SQL
+-- NOT 是非的意思 即取所修饰表达式对立的一面
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE NOT ... ;
+
+-- 示例 返回id>5并且id<10的数据
+mysql> SELECT * FROM stu WHERE NOT (id < 5 OR id > 10);
+```
+
+## 模糊查询与正则表达式
+
+- 模糊搜索
 ```SQL
 -- 语法
 SELECT col_names
@@ -299,7 +471,7 @@ WHERE col_name LIKE like_str;
 -- 1. _ 表示单个字符
 -- 2. % 表示一个字符串，字符串的长度可以为0
 
---示例1
+-- 示例1
 mysql> SELECT * FROM stu WHERE name LIKE 'm__y';
 +----+-----+------+-------+
 | id | age | name | sex   |
@@ -308,7 +480,7 @@ mysql> SELECT * FROM stu WHERE name LIKE 'm__y';
 |  4 |  18 | mary | fmale |
 +----+-----+------+-------+
 
---示例2
+-- 示例2
 mysql> SELECT * FROM stu WHERE name LIKE '%r_';
 +----+-----+------+-------+
 | id | age | name | sex   |
@@ -319,7 +491,7 @@ mysql> SELECT * FROM stu WHERE name LIKE '%r_';
 |  7 |  17 | kery | fmale |
 +----+-----+------+-------+
 ```
-- 正则表达式---**REGEXP**
+- 正则表达式
 ```SQL
 -- 语法
 SELECT col_names
@@ -359,23 +531,7 @@ mysql> SELECT * FROM stu WHERE name REGEXP 'y$';
 
 -- 熟悉常用正则表达式即可
 ```
-### 插入、更新和删除
-- 插入数据---**INSERT INTO VALUES**
-```SQL
--- 语法
-INSERT INTO from_name VALUES (datas1),...,(datasn);
 
--- 示例 插入一个数据
-mysql> INSERT INTO stu VALUES (2,12,'keria','male');
-```
-- 更新数据---**UPDATE SET WHERE**
-```SQL
--- 语法
-UPDATE from_name SET col_name WHERE conditions;
-
--- 示例 把name为keria的age更新为20
-mysql> UPDATE stu SET age = 20 WHERE name = 'keria';
-```
-- 删除数据---**DELETE WHERE**
+<!-- ### 数据控制语言---DCL -->
 
 
