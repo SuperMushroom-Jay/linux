@@ -313,13 +313,19 @@ mysql> ALTER TABLE stu RENAME TO student;
 
 ## 数据操作语言---DML
 
-- 插入
+- 插入数据
 ```SQL
+-- 使用 DEFAULT   使某列插入默认值
 -- 语法1    插入完成数据
 INSERT INTO from_name VALUES (datas1),...,(datasn);
 
 -- 语法2    给定列，插入对应列的数据
 INSERT INTO from_name(col_name,...,col_name) VALUES (datas),...,(datas);
+
+-- 语法3    从其他表中插入数据
+INSERT INTO from_name(col_name,...,col_name)    -- 两表的列名要相同
+SELECT (col_name,...,col_name)
+FROM another_from_name;
 
 -- 示例1 插入一个数据
 mysql> INSERT INTO stu VALUES (2,12,'keria','male');
@@ -328,7 +334,16 @@ mysql> INSERT INTO stu VALUES (2,12,'keria','male');
 mysql> INSERT INTO stu(id,name) VALUES (2,'keria');
 ```
 
-- 更新
+- 复制表
+```SQL
+-- 语法 将from_name表中的数据复制到新创的table_name中
+--      缺点就是这样复制有缺陷，没有设置列的属性，比如主键没有设置
+CREATE TABLE table_name AS
+SELECT col_names
+FROM from_name;
+```
+
+- 更新数据
 ```SQL
 -- 语法     更新符合条件的列
 UPDATE from_name SET col_name = up_date WHERE conditions;
@@ -337,7 +352,7 @@ UPDATE from_name SET col_name = up_date WHERE conditions;
 mysql> UPDATE stu SET age = 20 WHERE name = 'keria';
 ```
 
-- 删除
+- 删除数据
 ```SQL
 -- 语法1    删除表，这种删除可以回滚
 DELETE FROM from_name;
@@ -351,7 +366,6 @@ mysql> DELETE FROM stu;
 -- 示例2
 mysql> DELETE FROM stu WHERE id = 1;
 ```
-
 
 ## 数据查询语言---DQL
 
@@ -542,6 +556,246 @@ mysql> SELECT * FROM stu ORDER BY age DESC LIMIT 2,3;
 |  4 |  18 | mary | fmale |
 +----+-----+------+-------+
 ```
+
+- 分组---**GROUP BY**
+```SQL
+-- 对查询返回的数据根据某个字段进行分组
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE conditions        -- 筛选未分组前符合条件的数据
+GROUP BY col_names      -- 对数据进行分组
+ORDER BY col_names;     -- 对数据进行排序    
+
+-- 示例1 查看customer表中具有相同status_id的个数
+mysql> SELECT status_id,COUNT(id) as count
+    -> FROM customer
+    -> GROUP BY status_id;
++-----------+-------+
+| status_id | count |
++-----------+-------+
+|      NULL |     3 |   -- NULL 有三个
+|         1 |     4 |   -- 1 有4个
+|         2 |     2 |
+|         3 |     2 |
++-----------+-------+
+
+-- 示例2 内连接customer和order_status找出各状态的总人数
+mysql> SELECT os.name as status,
+    ->        COUNT(c.id) as count
+    -> FROM customer c
+    -> INNER JOIN order_status os
+    ->     USING(status_id)
+    -> GROUP BY os.name;
++-----------+-------+
+| status    | count |
++-----------+-------+
+| delivered |     2 |
+| processed |     4 |
+| shipped   |     2 |
++-----------+-------+
+```
+
+- 子句---**HAVING**
+```SQL
+-- HAVING 对分组后的数据进行筛选
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE conditions        -- 筛选未分组前符合条件的数据
+GROUP BY col_names      -- 对数据进行分组
+HAVING conditions;      -- 对分组后的数据进行筛选
+ORDER BY col_names      -- 对数据进行排序
+
+-- 示例 对两张表进行内连接，然后以status_id进行分组，并且分组后进行数据筛选
+--      去掉status为NULl的记录，然后对记录根据count进行降序排序
+mysql> SELECT os.name as status,
+    ->        COUNT(c.id) as count
+    -> FROM customer c
+    -> LEFT OUTER JOIN order_status os
+    ->     USING(status_id)
+    -> GROUP BY os.name
+    -> HAVING NOT status IS NULL
+    -> ORDER BY count DESC;
++-----------+-------+
+| status    | count |
++-----------+-------+
+| processed |     4 |
+| delivered |     2 |
+| shipped   |     2 |
++-----------+-------+
+```
+- 汇总数据---**WITH ROllUP**
+```SQL
+-- 注意：使用 WITH ROLLUP，此函数是对聚合函数进行求和
+--       注意 with rollup是对 group by 后的第一个字段，进行分组求和
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE conditions        -- 筛选未分组前符合条件的数据
+GROUP BY col_names      -- 对数据进行分组
+WITH ROLLUP;            -- 对聚合函数进行求和
+
+-- 示例 对count字段的数据进行汇总
+mysql> SELECT os.name as status,
+    ->        COUNT(c.id) as count
+    -> FROM customer c
+    -> LEFT OUTER JOIN order_status os
+    ->     USING(status_id)
+    -> GROUP BY os.name WITH ROLLUP;
++-----------+-------+
+| status    | count |
++-----------+-------+
+| NULL      |     3 |
+| delivered |     2 |
+| processed |     4 |
+| shipped   |     2 |
+| NULL      |    11 |
++-----------+-------+
+```
+
+- ALL关键字
+```SQL
+-- 将单个值与子查询返回的单列值集进行比较，必须全部满足才行
+SELECT col_names
+FROM from_name
+WHERE col_name [> >= <> = < <=] ALL ( 子查询 );
+
+-- 示例
+mysql> SELECT *
+    -> FROM customer
+    -> WHERE age > ALL(
+    ->     SELECT DISTINCT age
+    ->     FROM customer
+    ->     WHERE sex = 'fmale' && age<=20
+    -> );
++----+-----+--------+-------+-----------+
+| id | age | name   | sex   | status_id |
++----+-----+--------+-------+-----------+
+|  0 |  19 | yjl    | male  |         2 |
+|  2 |  20 | keria  | male  |      NULL |
+|  6 |  21 | Bob    | male  |         1 |
+|  8 |  21 | Kob    | male  |         3 |
+|  9 |  19 | Gropry | male  |         3 |
+| 10 |  21 | Vae    | fmale |         2 |
++----+-----+--------+-------+-----------+
+```
+
+- ANY关键字
+```SQL
+-- 将单个值与子查询返回的单列值集进行比较，有一个满足即可
+SELECT col_names
+FROM from_name
+WHERE col_name [> >= <> = < <=] ANY ( 子查询 );
+
+-- 示例
+mysql> SELECT *
+    -> FROM customer
+    -> WHERE status_id = ANY(
+    ->     SELECT DISTINCT status_id
+    ->     FROM order_status
+    -> );
++----+-----+--------+-------+-----------+
+| id | age | name   | sex   | status_id |
++----+-----+--------+-------+-----------+
+|  0 |  19 | yjl    | male  |         2 |
+|  1 |  18 | mzh    | fmale |         1 |
+|  3 |  16 | mery   | fmale |         1 |
+|  5 |  18 | carh   | fmale |         1 |
+|  6 |  21 | Bob    | male  |         1 |
+|  8 |  21 | Kob    | male  |         3 |
+|  9 |  19 | Gropry | male  |         3 |
+| 10 |  21 | Vae    | fmale |         2 |
++----+-----+--------+-------+-----------+
+```
+
+- EXISTS关键字
+```SQL
+-- EXISTS 是对外表作loop循环,即对外表的每一行都对内表进行比较
+--        EXISTS用于检查子查询是否至少会返回一行数据，该子查询
+--        实际上并不返回任何数据，而是返回值True或False
+--        EXISTS 指定一个子查询，检测行的存在
+-- 语法
+SELECT col_names
+FROM from_name
+WHERE EXISTS ( 子查询 );
+
+-- 示例 只要子查询能够查到数据就能返回TRUE
+mysql> SELECT * 
+    -> FROM customer c
+    -> WHERE EXISTS (
+    ->     SELECT status_id
+    ->     FROM order_status
+    ->     WHERE c.status_id=status_id
+    -> );
++----+-----+--------+-------+-----------+
+| id | age | name   | sex   | status_id |
++----+-----+--------+-------+-----------+
+|  0 |  19 | yjl    | male  |         2 |
+|  1 |  18 | mzh    | fmale |         1 |
+|  3 |  16 | mery   | fmale |         1 |
+|  5 |  18 | carh   | fmale |         1 |
+|  6 |  21 | Bob    | male  |         1 |
+|  8 |  21 | Kob    | male  |         3 |
+|  9 |  19 | Gropry | male  |         3 |
+| 10 |  21 | Vae    | fmale |         2 |
++----+-----+--------+-------+-----------+
+```
+- SELECT语句中的子查询
+```SQL
+-- 一般对聚合函数进行子查询作为新的一列值
+-- 语法
+SELECT col_names,
+       (子查询:相当于返回一列值),
+FROM from_name;
+-- 注意：计算列表达式中不能使用列的别名，要使用真实列名
+--       假如要使用列的别名可以这样使用(SELECT alias)
+
+-- 示例 这样聚合函数AVG(age)自成一列
+mysql> SELECT * ,
+    ->     (SELECT AVG(age) FROM customer) AS avg_of_age
+    -> FROM customer;
++----+-----+--------+-------+-----------+------------+
+| id | age | name   | sex   | status_id | avg_of_age |
++----+-----+--------+-------+-----------+------------+
+|  0 |  19 | yjl    | male  |         2 |    18.9091 |
+|  1 |  18 | mzh    | fmale |         1 |    18.9091 |
+|  2 |  20 | keria  | male  |      NULL |    18.9091 |
+|  3 |  16 | mery   | fmale |         1 |    18.9091 |
+|  4 |  18 | mary   | fmale |      NULL |    18.9091 |
+|  5 |  18 | carh   | fmale |         1 |    18.9091 |
+|  6 |  21 | Bob    | male  |         1 |    18.9091 |
+|  7 |  17 | kery   | fmale |      NULL |    18.9091 |
+|  8 |  21 | Kob    | male  |         3 |    18.9091 |
+|  9 |  19 | Gropry | male  |         3 |    18.9091 |
+| 10 |  21 | Vae    | fmale |         2 |    18.9091 |
++----+-----+--------+-------+-----------+------------+
+```
+
+- FROM语句子查询
+```SQL
+-- 将子查询返回的表作为本次查询的表
+-- 语法
+SELECT col_names
+FROM (子查询:返回表) AS alias   -- 此处的alias必须有
+...;    -- 其他子语句
+
+-- 示例 将子查询返回的表作为新表并返回新表中id<5的记录
+mysql> SELECT *
+    -> FROM (
+    ->     SELECT *
+    ->     FROM family
+    ->     WHERE sex = 'fmale'
+    -> ) AS new_from
+    -> WHERE id<5;
++----+------+-------+-----------+-----------+
+| id | name | sex   | father_id | mother_id |
++----+------+-------+-----------+-----------+
+|  2 | mery | fmale |      NULL |      NULL |
+|  4 | pou  | fmale |         1 |         2 |
++----+------+-------+-----------+-----------+
+```
+
 
 ### 条件查询
 
@@ -775,7 +1029,24 @@ LTrim(str);      --去掉str字符串左边的空格
 ```
 - 等以后再讨论
 
+## 聚合函数
+
+- **注意：聚合函数只会计算非NULL值,若想计算所有值，在参数中输入 '\*'**
+
+- MAX(col_name)---计算某列的最大值
+- MIN(col_name)---计算某列的最小值
+- AVG(col_name)---计算某列的平均值
+- SUM(col_name)---计算某列的总和
+- COUNT(col_name)---计算某列有多少行
+
+
+
+
+
 ---
+
+
+
 
 # 连接---在多张表检索数据
 
